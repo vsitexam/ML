@@ -1,0 +1,715 @@
+Design the Machine Learning Model 
+Design a simple machine learning model to train the training instances and test the
+same.
+
+import numpy
+import matplotlib.pyplot as plt
+numpy.random.seed(2)
+
+x = numpy.random.normal(3, 1, 100)
+print(x)
+
+y = numpy.random.normal(150, 40, 100) /x 
+print (y)
+
+plt.scatter(x, y)
+plt.show()
+
+train_x = x[:80]
+train_y = y[:80]
+
+test_x = x[:20]
+test_y = y[:20]
+
+print (train_x, train_y, test_x, test_y)
+
+plt.scatter(train_x, train_y)
+plt.show()
+
+plt.scatter(test_x, test_y)
+plt.show()
+
+mymodel = numpy.poly1d(numpy.polyfit(train_x, train_y, 4))
+myline = numpy.linspace(0, 6, 100)
+plt.scatter(train_x, train_y)
+plt.plot(myline, mymodel(myline))
+plt.show()
+
+import numpy
+from sklearn.metrics import r2_score
+numpy.random.seed(2)
+r2 = r2_score(train_y, mymodel(train_x))
+print(r2) 
+
+print(mymodel(5))
+
+-----------------------------------------------------------
+Pract 2
+Concept Learning
+Implement and demonstrate the find-s algorithm for finding the most specific
+
+import csv
+num_attributes = 6
+a = []
+print("\n The Given Training Data Set \n")
+with open('enjoysport.csv', 'r') as csvfile:
+  reader = csv.reader(csvfile)
+
+with open('enjoysport.csv', 'r') as csvfile:
+ reader = csv.reader(csvfile)
+ count=0
+ for row in reader:
+    if count == 0:
+      print (row)
+      count=+1;
+    else:
+      a.append (row)
+      print(row)
+      count+=1; 
+
+print("\n The initial value of hypothesis: ")
+hypothesis = ['0'] * num_attributes
+print(hypothesis)
+
+for j in range(0,num_attributes):
+  hypothesis[j] = a[0][j];
+print (hypothesis)  
+
+print("\n Find S: Finding a Maximally Specific Hypothesis\n")
+for i in range(0,len(a)):
+ if a[i][num_attributes]=='Yes':
+  for j in range(0,num_attributes):
+    if a[i][j]!=hypothesis[j]:
+        hypothesis[j]='?'
+    else :
+        hypothesis[j]= a[i][j]
+print(" For Training Example No :{0} the hypothesis is ".format(i),hypothesis)
+
+
+print("\n the maximally specific hypothesis for given training examples:\n")
+print(hypothesis)
+
+---------------------------------------------------------------------------------
+Pract 3
+Concept Learning
+Data loading, feature scoring and ranking, feature selection (principal component
+analysis).
+
+
+import numpy as np
+import pandas as pd
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data"
+names = names = ['sepal-length', 'sepal-width', 'petal-length', 'petal-width', 'Class']
+dataset = pd.read_csv(url, names=names)
+dataset.head()
+
+x=dataset.drop('Class',axis=1)
+x.head()
+
+y=dataset['Class']
+y.head()
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=0)
+
+from sklearn.preprocessing import StandardScaler
+sc=StandardScaler()
+x_train1=sc.fit_transform(x_train)
+x_test1=sc.transform(x_test)
+y_train1=y_train
+y_test1=y_test
+
+from sklearn.decomposition import PCA
+pca=PCA()
+x_train1=pca.fit_transform(x_train1)
+x_test1=pca.transform(x_test1)
+
+explained_variance=pca.explained_variance_ratio_
+print(explained_variance)
+
+from sklearn.decomposition import PCA
+pca=PCA(n_components=1)
+x_train1=pca.fit_transform(x_train1)
+x_test1=pca.transform(x_test1)
+
+from sklearn.ensemble import RandomForestClassifier
+classifier=RandomForestClassifier(max_depth=2, random_state=0)
+classifier.fit(x_train1, y_train1)
+y_pred=classifier.predict(x_test1)
+
+
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import accuracy_score
+cm = confusion_matrix(y_test, y_pred)
+print(cm)
+
+print('Accuracy',accuracy_score(y_test1, y_pred))
+
+------------------------------------------------------------------------------------------
+Pract 4
+
+candidate-elimination algorithm
+
+import numpy as np
+import pandas as pd
+
+data = pd.DataFrame(data=pd.read_csv('enjoysport.csv'))
+print(data)
+
+concepts = np.array(data.iloc[:,0:-1])
+print(concepts)
+
+target = np.array(data.iloc[:,-1])
+print(target)
+
+def learn(concepts, target):
+ 
+    
+    specific_h = concepts[0].copy()
+    print("\nInitialization of specific_h and general_h")
+    print(specific_h)
+    
+
+    general_h = [["?" for i in range(len(specific_h))] for i in range(len(specific_h))]
+    print(general_h)
+    
+    for i, h in enumerate(concepts):
+
+        
+        if target[i] == "Yes":
+            for x in range(len(specific_h)):
+
+                
+                if h[x] != specific_h[x]:
+                    specific_h[x] = '?'
+                    general_h[x][x] = '?'
+
+        
+        if target[i] == "No":
+            for x in range(len(specific_h)):
+                
+                if h[x] != specific_h[x]:
+                    general_h[x][x] = specific_h[x]
+                else:
+                    general_h[x][x] = '?'
+
+        print("\nSteps of Candidate Elimination Algorithm",i+1)
+        print(specific_h)
+        print(general_h)
+    
+    indices = [i for i, val in enumerate(general_h) if val == ['?', '?', '?', '?', '?', '?']]
+    for i in indices:
+       
+        general_h.remove(['?', '?', '?', '?', '?', '?'])
+    
+    return specific_h, general_h
+
+s_final, g_final = learn(concepts, target)
+print("\nFinal Specific_h:", s_final, sep="\n")
+print("\nFinal General_h:", g_final, sep="\n")
+
+
+---------------------------------------------------------------------
+Prac 5
+
+Naïve Bayesian Classifier
+
+Write a program to implement the Naïve Bayesian classifier for a sample training data set stored as
+a .CSV file. Compute the accuracy of the classifier, considering few test data sets.
+
+pip install sklearn
+
+import numpy as np
+import pandas as pd
+
+from sklearn import datasets
+
+wine = datasets.load_wine()
+print("Features: ", wine.feature_names)
+
+print("Labels: ", wine.target_names)
+X=pd.DataFrame(wine['data'])
+print(X.head())
+print(wine.data.shape)
+
+y=print (wine.target)
+
+X_train, X_test, y_train, y_test = train_test_split(wine.data, wine.target, test_size
+=0.30,random_state=10)
+
+from sklearn.naive_bayes import GaussianNB
+
+gnb = GaussianNB()
+
+gnb.fit(X_train,y_train)
+
+y_pred = gnb.predict(X_test)
+print(y_pred)
+
+from sklearn import metrics
+print("Accuracy:",metrics.accuracy_score(y_test, y_pred))
+
+from sklearn.metrics import confusion_matrix
+cm=np.array(confusion_matrix(y_test,y_pred))
+cm
+
+---------------------------------------------------------------
+Prac 6
+
+Decision Tree Classifier & Random Forest Classifier
+
+Write a program to implement the Decision Tree Classifier & Random Forest Classifier with prediction,
+test score and confusion matrix.
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+
+df = pd.read_csv("WA_Fn-UseC_-HR-Employee-Attrition.csv")
+df.head()
+
+sns.countplot(x='Attrition', data=df)
+
+df.drop(['EmployeeCount', 'EmployeeNumber', 'Over18', 'StandardHours'], axis="columns", inplace=True)
+
+categorical_col = []
+for column in df.columns:
+    if df[column].dtype == object: 
+        categorical_col.append(column)
+        
+df['Attrition'] = df.Attrition.astype("category").cat.codes
+
+
+from sklearn.preprocessing import LabelEncoder
+
+for column in categorical_col:
+    df[column] = LabelEncoder().fit_transform(df[column]) 
+
+
+from sklearn.model_selection import train_test_split
+
+X = df.drop('Attrition', axis=1)
+y = df.Attrition
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+def print_score(clf, X_train, y_train, X_test, y_test, train=True):
+    if train:
+        pred = clf.predict(X_train)
+        clf_report = pd.DataFrame(classification_report(y_train, pred, output_dict=True))
+        print("Train Result:\n================================================")
+        print(f"Accuracy Score: {accuracy_score(y_train, pred) * 100:.2f}%")
+        print("_______________________________________________")
+        print(f"CLASSIFICATION REPORT:\n{clf_report}")
+        print("_______________________________________________")
+        print(f"Confusion Matrix: \n {confusion_matrix(y_train, pred)}\n")
+        
+    elif train==False:
+        pred = clf.predict(X_test)
+        clf_report = pd.DataFrame(classification_report(y_test, pred, output_dict=True))
+        print("Test Result:\n================================================")        
+        print(f"Accuracy Score: {accuracy_score(y_test, pred) * 100:.2f}%")
+        print("_______________________________________________")
+        print(f"CLASSIFICATION REPORT:\n{clf_report}")
+        print("_______________________________________________")
+        print(f"Confusion Matrix: \n {confusion_matrix(y_test, pred)}\n")
+
+
+from sklearn.tree import DecisionTreeClassifier
+
+tree_clf = DecisionTreeClassifier(random_state=42)
+tree_clf.fit(X_train, y_train)
+ 
+
+print_score(tree_clf, X_train, y_train, X_test, y_test, train=True)
+print_score(tree_clf, X_train, y_train, X_test, y_test, train=False)
+
+
+from sklearn.ensemble import RandomForestClassifier
+
+rf_clf = RandomForestClassifier(random_state=42)
+rf_clf.fit(X_train, y_train)
+
+---------------------------------------------------------------------------------
+
+Prac 7
+
+Linear and Logistic Regression
+
+Title: Least Square Regression
+7.a ) Aim: For a given set of training data examples stored in a .CSV file implement Least Square
+Regression algorithm
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.rcParams['figure.figsize'] = (12.0,9.0)
+
+data = pd.read_csv('data.csv')
+X = data.iloc[:,0]
+Y = data.iloc[:,1]
+plt.scatter(X,Y)
+plt.show()
+
+X_mean = np.mean(X)
+Y_mean = np.mean(Y)
+num = 0
+den = 0
+for i in range(len(X)):
+    num += (X[i] - X_mean)*(Y[i] - Y_mean)
+    den += (X[i] - X_mean)**2
+m = num/den
+c = Y_mean - m*X_mean
+print (m,c)
+
+Y_pred = m*X + c
+plt.scatter(X, Y) # actual
+plt.plot([min(X),max(X)],[min(Y_pred), max(Y_pred)], color='red') #prediction
+plt.show()
+
+------------------------------------------------------------------------
+Title: Logistic Regression.
+7.b ) Aim: For a given set of training data examples stored in a .CSV file implement Logistic
+Regression algorithm.
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+dataset = pd.read_csv('DMVWrittenTests.csv')
+X = dataset.iloc[:, [0,1]].values
+Y = dataset.iloc[:,2].values
+dataset.head(5)
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.25, random_state = 0)
+
+from sklearn.preprocessing import StandardScaler
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+from sklearn.linear_model import LogisticRegression
+classifier = LogisticRegression()
+classifier.fit(X_train, Y_train)
+
+y_pred = classifier.predict(X_test)
+y_pred
+
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(Y_test,y_pred)
+from sklearn.metrics import accuracy_score
+print ("Accuracy:", accuracy_score(Y_test, y_pred))
+cm
+
+----------------------------------------------------------------------
+Pract 8
+
+K – Nearest Neighbour
+Aim: Write a program to implement k-Nearest Neighbour algorithm to classify the iris data-set.
+
+
+from sklearn.datasets import load_iris
+from sklearn.neighbors import KNeighborsClassifier
+import numpy as np
+from sklearn.model_selection import train_test_split
+
+iris_dataset=load_iris()
+print("\n IRIS TARGET NAMES: \n", iris_dataset.target_names)
+for i in range(len(iris_dataset.target_names)):
+    print("\n[{0}]:[{1}]".format(i,iris_dataset.target_names[i]))
+
+
+print("\n IRIS DATA :\n",iris_dataset["data"])
+
+X_train, X_test, y_train, y_test = train_test_split(iris_dataset["data"],
+iris_dataset["target"],random_state=0)
+
+print("\n Target :\n",iris_dataset["target"])
+print("\n X TRAIN \n", X_train)
+print("\n X TEST \n", X_test)
+print("\n Y TRAIN \n", y_train)
+print("\n Y TEST \n", y_test)
+
+
+kn = KNeighborsClassifier(n_neighbors=1)
+kn.fit(X_train, y_train)
+
+print("\n Target :\n",iris_dataset["target"])
+print("\n X TRAIN \n", X_train)
+print("\n X TEST \n", X_test)
+print("\n Y TRAIN \n", y_train)
+print("\n Y TEST \n", y_test)
+kn = KNeighborsClassifier(n_neighbors=3)
+kn.fit(X_train, y_train)
+
+print("\n Target :\n",iris_dataset["target"])
+print("\n X TRAIN \n", X_train)
+print("\n X TEST \n", X_test)
+print("\n Y TRAIN \n", y_train)
+print("\n Y TEST \n", y_test)
+kn = KNeighborsClassifier(n_neighbors=5)
+kn.fit(X_train, y_train)
+
+for i in range (len(X_test)):
+    X=X_test[i]
+    X_new=np.array([X])
+    prediction = kn.predict(X_new)
+    print("\n Actual : {0}{1}, Predicted:{2}{3}".format(y_test[i],iris_dataset["target_names"][y_test[i]],prediction,iris_dataset ["target_names"][prediction]))
+
+print("\n TEST SCORE[ACCURACY]: {:.2F}\n".format(kn.score(X_test,y_test)))
+
+----------------------------------------------------------------------------------------
+
+Pract 9
+Euclidean Distance
+
+Aim: Implement the different Distance methods (Euclidean) with Prediction, Test score and
+Confusion Matrix.
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
+
+df = pd.read_csv("IRIS.csv")
+df.head(5)
+
+X = df.drop(['Species'], axis=1)
+y = df['Species']
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=0)
+
+knn = KNeighborsClassifier(n_neighbors = 6, p = 2, metric='minkowski')
+
+knn.fit(x_train, y_train)
+--
+print(knn.score(x_test, y_test))
+
+--
+y_pred = knn.predict(x_test)
+
+--
+from sklearn.metrics import confusion_matrix
+cm=np.array(confusion_matrix(y_test,y_pred))
+cm
+
+knn = KNeighborsClassifier(n_neighbors = 6, p = 1, metric='minkowski')
+knn.fit(x_train, y_train)
+
+print(knn.score(x_test, y_test))
+y_pred = knn.predict(x_test)
+
+from sklearn.metrics import confusion_matrix
+cm=np.array(confusion_matrix(y_test,y_pred))
+cm
+
+#let ∞ = 10000
+knn = KNeighborsClassifier(n_neighbors = 6, p = 10000, metric='minkowski')
+knn.fit(x_train, y_train)
+
+print(knn.score(x_test, y_test))
+y_pred = knn.predict(x_test)
+
+from sklearn.metrics import confusion_matrix
+cm=np.array(confusion_matrix(y_test,y_pred))
+cm
+
+---------------------------------------------------------------
+Pract 10
+
+K – Means Clustering
+Implement the classification model using K-means clustering with Prediction, Test score
+and Confusion Matrix.
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import sklearn
+
+dataset = pd.read_csv('Mall_Customers.csv')
+X = dataset.iloc[:, [3,4]].values
+
+from sklearn.cluster import KMeans
+wcss = []
+for i in range(1,11):
+    kmeans = KMeans(n_clusters=i, init='k-means++',random_state=42)
+    kmeans.fit(X)
+    wcss.append(kmeans.inertia_)
+
+plt.plot(range(1,11),wcss)
+plt.xlabel('Number of clusters')
+plt.ylabel('WCSS')
+plt.show()
+
+kmeans = KMeans(n_clusters=5,init="k-means++",random_state=42)
+y_kmeans = kmeans.fit_predict(X)
+
+plt.scatter(X[y_kmeans == 0,0], X[y_kmeans == 0,1], s = 60, c = 'red', label = 'Cluster1')
+plt.scatter(X[y_kmeans == 1,0], X[y_kmeans == 1,1], s = 60, c = 'blue', label = 'Cluster2')
+plt.scatter(X[y_kmeans == 2,0], X[y_kmeans == 2,1], s = 60, c = 'green', label = 'Cluster3')
+plt.scatter(X[y_kmeans == 3,0], X[y_kmeans == 3,1], s = 60, c = 'violet', label = 'Cluster4')
+plt.scatter(X[y_kmeans == 4,0], X[y_kmeans == 4,1], s = 60, c = 'yellow', label = 'Cluster5')
+plt.scatter(kmeans.cluster_centers_[:,0], kmeans.cluster_centers_[:,1],s=100,c='black',label='Centroids')
+plt.xlabel('Annual Income (k$)')
+plt.ylabel('Spending Score (1-100')
+plt.legend()
+plt.show()
+
+------------------------------------------------------
+
+pract PBL1
+
+Text pre-processing , Text clustering
+
+Aim: Text pre-processing, text clustering, classification with prediction, test score and
+confusion matrix.
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+dataset = pd.read_csv('Restaurant_Reviews.tsv', delimiter = '\t', quoting = 3)
+
+import re
+import nltk
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+from nltk.stem.porter import PorterStemmer
+corpus = []
+
+for i in range(0,1000):
+    review = re.sub('[^a-zA-Z]','',dataset['Review'][i])
+    review = review.lower()
+    review = review.split()
+    ps = PorterStemmer()
+    review = [ps.stem(word) for word in review if not word in set(stopwords.words('english'))]
+    review = ''.join(review)
+    corpus.append(review)
+
+from sklearn.feature_extraction.text import CountVectorizer
+cv = CountVectorizer(max_features=1500)
+X = cv.fit_transform(corpus).toarray()
+Y = dataset.iloc[:,1].values
+
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size = 0.25, random_state=100)
+
+from sklearn.naive_bayes import GaussianNB
+classifier = GaussianNB()
+classifier.fit(X_train, Y_train)
+
+Y_pred = classifier.predict(X_test)
+
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix
+print("Accuracy:",metrics.accuracy_score(Y_test, Y_pred))
+
+from sklearn.metrics import confusion_matrix
+cm = confusion_matrix(Y_test, Y_pred)
+print(cm)
+
+--------------------------------------------------------------------------
+Practical PBL2
+
+Multiclass classification - SVM
+Support vector machine (SVM) algorithm for multiclass classification
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
+df = pd.read_csv("Iris.csv")
+df.head()
+
+df.dtypes
+
+df['Species'].value_counts()
+
+x = df.drop(['Species'], axis=1)
+y = df['Species']
+
+print(x.shape)
+print(y.shape)
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.3,random_state = 0)
+
+print(x_train.shape)
+print(y_train.shape)
+print(x_test.shape)
+print(y_test.shape)
+
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix
+
+clf = SVC(kernel='linear').fit(x_train,y_train)
+clf.predict(x_train)
+
+y_pred = clf.predict(x_test)
+
+cm = confusion_matrix(y_test, y_pred)
+
+cm_df = pd.DataFrame(cm,index = ['SETOSA','VERSICOLR','VIRGINICA'],columns = ['SETOSA','VERSICOLR','VIRGINICA'])
+
+
+plt.figure(figsize=(5,4))
+sns.heatmap(cm_df, annot = True)
+plt.title('Confusion Matrix')
+plt.ylabel('Actual Values')
+plt.xlabel('Predicted Values')
+plt.show()
+
+------
+
+BankSheetCSV
+
+df = pd.read_csv("bank-full.csv")
+df.head()
+
+df.dtypes
+
+df['poutcome'].value_counts()
+
+x = df.drop(['poutcome'], axis =1)
+y = df['poutcome']
+print(x.shape)
+print(y.shape)
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x,y, test_size=0.3,random_state = 0)
+
+print(x_train.shape)
+print(y_train.shape)
+print(x_test.shape)
+print(y_test.shape)
+
+from sklearn.svm import SVC
+from sklearn.metrics import confusion_matrix
+
+clf = SVC(kernel='linear').fit(x_train,y_train)
+clf.predict(x_train)
+
+y_pred = clf.predict(x_test)
+
+cm = confusion_matrix(y_test, y_pred)
+cm_df = pd.DataFrame(cm,index = ['unknown','failure','other'],columns = ['unknown','failure','other'])
+
+plt.figure(figsize=(5,4))
+sns.heatmap(cm_df, annot = True)
+plt.title('Confusion Matrix')
+plt.ylabel('Actual Values')
+plt.xlabel('Predicted Values')
+plt.show()
+---------------------------
+
+
+
